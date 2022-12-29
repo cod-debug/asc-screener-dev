@@ -57,23 +57,23 @@
             <div v-if="parentData.type_of_media == 'SINGLE MEDIA'">
               <div v-for="(i, k) in parentData.type_of_medium" :key="k" class="row">
                 <div class="col-12 col-md-12 q-pa-sm" v-if="k == 0">
-                  <q-select outlined label="Single Media *" v-model="i.type_of_medium" :options="medium_options" option-label="desc" option-value="desc"  disable >
+                  <q-select outlined label="Single Media *" v-model="i.type_of_medium" :options="medium_options" option-label="desc" option-value="desc" disable>
                   </q-select>
                 </div>
                 <div class="col-4 col-md-4 q-pa-sm" v-if="i.type_of_medium.execution && k == 0">
-                  <q-select outlined label="Execution *" v-model="i.execution" :options="execution_options" option-label="type" option-value="type"  disable></q-select>
+                  <q-select outlined label="Execution *" v-model="i.execution" :options="execution_options" option-label="type" option-value="type" disable></q-select>
                 </div>
                 <div class="col-4 col-md-4 q-pa-sm"  v-if="i.type_of_medium.language && k == 0">
-                  <q-select outlined label="Language / Dialect" v-model="language" :options="language_options" option-label="dialect" option-value="dialect"  disable></q-select>
+                  <q-select outlined label="Language / Dialect" v-model="i.dialect" :options="language_options" option-label="dialect" option-value="dialect" disable></q-select>
                 </div>
                 <div class="col-4 col-md-4 q-pa-sm"  v-if="i.type_of_medium.length && k == 0" >
-                  <q-input outlined label="Duration (in seconds)" v-model="i.lengthSize"  disable />
+                  <q-input outlined label="Duration (in seconds)" v-model="i.lengthSize" disable/>
                 </div>
                 <div class="col-4 col-md-4 q-pa-sm" v-if="i.type_of_medium.size && k == 0">
                   <q-input outlined label="Dimension" v-model="i.lengthSize" hint="e.i format: 8 x 11 inches" disable />
                 </div>
                 <div class="col-4 col-md-4 q-pa-sm" v-if="i.type_of_medium.others && k == 0">
-                  <q-input outlined label="Others" v-model="i.others" disable />
+                  <q-input outlined label="Others" v-model="i.others" disable/>
                 </div>
               </div>
             </div>
@@ -89,17 +89,17 @@
 
               <div class="col-12">
                 <div>
-                  <table class="w-100">
+                  <table class="table w-100">
                     <tbody>
                       <tr v-for="(i, k) in type_of_medium_options" :key="k" class="row">
                         <td width="50%">
                           <q-checkbox :label="i.val" :val="i.type_of_medium" v-model="type_of_mediums_updated" disable />
                         </td>
-                        <td v-if="!isMoving && i.val != 'DIGITAL STATIC'"  width="50%">
-                          <q-input v-model="i.lengthSize" input-class="text-right" outlined disable />
+                        <td v-if="!isMoving && i.val != 'DIGITAL STATIC'"  width="50%" class="q-pa-sm">
+                          <q-input v-model="i.lengthSize" input-class="text-right" disable outlined />
                         </td>
                         <td v-else-if="isMoving && k == 0"  width="50%">
-                          <q-input v-model="i.lengthSize" input-class="text-right" outlined disable />
+                          <q-input v-model="i.lengthSize" input-class="text-right" disable outlined />
                         </td>
                       </tr>
                     </tbody>
@@ -107,9 +107,9 @@
                 </div>
               </div>
             </div>
-            <!-- <q-card-section>
-              <q-btn label="Save updates" @click="saveUpdate" icon="save" size="sm" color="red-14" />
-            </q-card-section> -->
+            <q-card-section>
+              <!-- <q-btn label="Save updates" @click="saveUpdate" icon="save" size="sm" color="red-14" /> -->
+            </q-card-section>
           </q-card>
 
           <q-card bordered :square="true" class="q-pa-md q-mt-md">
@@ -147,9 +147,9 @@
                     </div>
                   </div>
                 </q-card-section>
-                <hr />
+                <hr v-if="parentData.subDocUrl" />
 
-                <q-card-section class="q-pa-sm">
+                <q-card-section class="q-pa-sm" v-if="parentData.subDocUrl">
                   <div class="q-mt-sm">
                     <q-icon name="bookmark" class="text-red-15" style="font-size: 24px" /> SUPPORT DOCUMENT
                   </div>
@@ -219,11 +219,22 @@ import { Notify } from 'quasar';
 
     watch:{
       isMoving(newVal, oldVal){
-        this.type_of_medium_options = this.multimedia_options.filter((i) => {
-          return i.isMoving == newVal;
-        });
-        if(this.type_of_media == 'MULTIMEDIA'){
-          this.type_of_mediums_updated = this.parentData.type_of_medium_parsed;
+        let vm = this;
+        if([true, false].includes(newVal)){
+          this.type_of_medium_options = this.multimedia_options.filter((i) => {
+            return i.isMoving == newVal;
+          });
+          
+          if(this.parentData.type_of_media == 'MULTIMEDIA'){
+            this.type_of_mediums_updated = this.parentData.type_of_medium_parsed;
+            this.type_of_medium_options.map((opt) => {
+              vm.parentData.type_of_medium.map((tom) => {
+                if(opt.type_of_medium == tom.type_of_medium) {
+                  return {...opt, lengthSize: tom.lengthSize};
+                }
+              });
+            });
+          }
         }
       },
     },
@@ -270,8 +281,12 @@ import { Notify } from 'quasar';
           id: this.appId,
         }
 
-        // console.log(payload, "FINAL PAYLOAD");
-        
+        vm.parentData.type_of_medium_parsed = payload.data.type_of_mediums.map((i) => {
+          return i.type_of_medium
+        });
+
+        console.log(payload, "UPDATE PAYLOAD");
+        // return false;
         let {data, status} = await vm.$store.dispatch("s1/updateApp", payload);
         if([200, 201].includes(status)){
           Notify.create({
@@ -281,6 +296,8 @@ import { Notify } from 'quasar';
             timeout: 2000,
             color: 'green',
           });
+          
+          vm.initApp();
         } else {
           Notify.create({
             message: data.message,
@@ -407,9 +424,16 @@ import { Notify } from 'quasar';
             type_of_medium: "PRINT",
           },
         ];
-        this.isMoving = this.parentData.type_of_medium ? this.parentData.type_of_medium[0].isMoving : true;
+        this.isMoving = this.parentData?.type_of_medium ? this.parentData?.type_of_medium[0]?.isMoving == 0 ? false : true : false;
+        
+        
+        if(this.parentData.type_of_media == 'MULTIMEDIA'){
+          this.type_of_mediums_updated = this.parentData.type_of_medium_parsed;
+          console.log(this.type_of_mediums_updated, "MULTIMEDIA!!!")
+        }
+
         this.type_of_medium_options = this.multimedia_options.filter((i) => {
-          return i.isMoving == vm .isMoving;
+          return i.isMoving == vm.isMoving;
         });
 
         this.parentData.type_of_medium_new.map((i) => {
@@ -475,7 +499,7 @@ import { Notify } from 'quasar';
 
         // getAllExecutionTypes
       },
-
+      
       async getAllLanguage(){
         let vm = this;
 
@@ -490,6 +514,7 @@ import { Notify } from 'quasar';
         vm.language_options = data.rows;
         // getAllExecutionTypes
       },
+
     }
   }
 </script>

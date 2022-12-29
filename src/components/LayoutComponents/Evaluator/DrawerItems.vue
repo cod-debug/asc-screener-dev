@@ -63,18 +63,18 @@ export default {
               count: data.individualCount || 0,
               path: "/asc/page/application/s1/lists",
             },
-            {
-              icon: "fa-solid fa-caret-right",
-              label: "Multiple Applications",
-              count: data.multipleCount || 0,
-              path: "/asc/page/application/s1/multiple",
-            },
-            {
-              icon: "fa-solid fa-caret-right",
-              label: "Special Applications",
-              count: data.specialCount || 0,
-              path: "/asc/page/application/s1/special",
-            }
+            // {
+            //   icon: "fa-solid fa-caret-right",
+            //   label: "Multiple Applications",
+            //   count: data.multipleCount || 0,
+            //   path: "/asc/page/application/s1/multiple",
+            // },
+            // {
+            //   icon: "fa-solid fa-caret-right",
+            //   label: "Special Applications",
+            //   count: data.specialCount || 0,
+            //   path: "/asc/page/application/s1/special",
+            // }
           ]
         },
         {

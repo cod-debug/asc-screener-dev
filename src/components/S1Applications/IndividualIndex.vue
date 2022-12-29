@@ -44,8 +44,12 @@
 
         <hr class="q-tabs-gutter" color="lightgray" />
 
-        <div class="table_container" v-if="!is_loading">
+        <div class="table_container q-mt-md" v-if="!is_loading">
+          <div v-if="table_data.length <= 0" class="no-data-found">
+            <q-icon name="warning" /> NO DATA FOUND...
+          </div>
           <q-table :columns="columns" 
+          v-else
           flat 
           bordered 
           :rows="table_data" 
@@ -109,7 +113,7 @@
             </template>
           </q-table>
 
-          <div class="text-right q-mt-md">
+          <div class="text-right q-mt-md" v-if="max_page > 0">
             <q-pagination v-model="current"
                           @update:model-value="getList()"
                           :max="max_page"

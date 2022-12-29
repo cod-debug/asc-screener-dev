@@ -70,7 +70,7 @@
                   <q-input outlined label="Duration (in seconds)" v-model="i.lengthSize" disable/>
                 </div>
                 <div class="col-4 col-md-4 q-pa-sm" v-if="i.type_of_medium.size && k == 0">
-                  <q-input outlined label="Dimension" v-model="i.lengthSize" hint="e.i format: 8 x 11 inches" disable />
+                  <q-input outlined label="Size / Length" v-model="i.lengthSize" hint="e.i format: 8 x 11 inches" disable />
                 </div>
                 <div class="col-4 col-md-4 q-pa-sm" v-if="i.type_of_medium.others && k == 0">
                   <q-input outlined label="Others" v-model="i.others" disable/>
@@ -162,7 +162,7 @@
                         <div class="">
                           <label>File Path:</label>
                           <br />
-                          <label class="text-grey-14">{{parentData.origMainDocUrl}}</label>
+                          <label class="text-grey-14">{{parentData.subDocUrl}}</label>
                         </div>
                       </div>
                     </div>
@@ -174,6 +174,88 @@
                     </div>
                   </div>
                 </q-card-section>
+                
+                
+              <div class="q-ma-md" v-if="doc_types_current.length > 0">
+                <q-table dense :columns="doc_types_columns" :rows="doc_types_current" square>
+                  <template #body="props">
+                    <q-tr
+                      :props="props"
+                      hover
+                    >
+                      <q-td
+                        key="type_of_document"
+                        :props="props"
+                      >
+                        {{ props.row.type_of_document || 'N/A' }}
+                      </q-td>
+                      <q-td
+                        key="input"
+                        :props="props"
+                      >
+                        {{ props.row.input || 'N/A' }}
+                      </q-td>
+                      <q-td
+                        key="variant"
+                        :props="props"
+                      >
+                        {{ props.row.variant || 'N/A' }}
+                      </q-td>
+                      <q-td
+                        key="expiration_date"
+                        :props="props"
+                      >
+                        {{ props.row.expiration_date || 'N/A' }}
+                      </q-td>
+                      <q-td
+                        key="date_launch"
+                        :props="props"
+                      >
+                        {{ props.row.date_launch ?  props.row.date_launch : 'N/A' }}
+                      </q-td>
+                      <q-td
+                        key="remarks"
+                        :props="props"
+                      >
+                        {{ props.row.remarks || 'N/A' }}
+                      </q-td>
+                      <q-td
+                        key="actions"
+                        :props="props"
+                      >
+                        <q-btn size="sm" color="red-14" icon="delete" @click="removeDoc(props.row.id, props.pageIndex)" />
+                      </q-td>
+                    </q-tr>
+                  </template>
+                </q-table>
+              </div>
+
+                <q-card-section class="q-pa-sm" v-if="parentData.revision_letter">
+                  <div class="q-mt-sm">
+                    <q-icon name="bookmark" class="text-red-15" style="font-size: 24px" /> REVISION LETTER
+                  </div>
+                </q-card-section>
+
+                <q-card-section v-if="parentData.revision_letter">
+                  <div class="row">
+                    <div class="col-sm-12 q-pa-sm">
+                      <div class="q-gutter-sm">
+                        <div class="">
+                          <label>File Path:</label>
+                          <br />
+                          <label class="text-grey-14">{{parentData.revision_letter}}</label>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="col-sm-12 q-pa-sm text-right">
+                      <q-btn color="red-14" @click="viewDoc(parentData.revision_letter)">
+                        <q-icon name="open_in_new" />
+                        VIEW DOCUMENT
+                      </q-btn>
+                    </div>
+                  </div>
+                </q-card-section>
+                
               </q-card>
             </q-card-section>
           </q-card>
@@ -209,6 +291,18 @@ import { Notify } from 'quasar';
 
       isMoving: null,
       is_moving_length: "",
+
+      
+
+      doc_types_columns: [
+          { name: 'type_of_document', align: 'left', label: 'TYPE OF DOCUMENT', field: 'type_of_document', sortable: true },
+          { name: 'input', align: 'left', label: 'INPUT', field: 'input', sortable: true, },
+          { name: 'variant', align: 'left', label: 'VARIANT', field: 'variant', sortable: true, },
+          { name: 'expiration_date', align: 'left', label: 'EXPIRES ON', field: 'expiration_date', sortable: true, },
+          { name: 'date_launch', align: 'left', label: 'BASED ON', field: 'date_launch', sortable: true, },
+          { name: 'remarks', align: 'left', label: 'REMARKS', field: 'remarks', sortable: true, },
+        ],
+      doc_types_current: [],
 
     }),
     computed:{
@@ -316,6 +410,7 @@ import { Notify } from 'quasar';
 
       initApp(){
         let vm = this;
+        vm.doc_types_current = vm.parentData.document_type;
         // this.single_media = this.$parent.$parent.$parent.$parent.type_of_medium.type_of_medium;
         if(this.parentData.type_of_media){
           // this.single_media = this.$parent.$parent.$parent.$parent.type_of_medium[0].type_of_medium;
@@ -499,7 +594,7 @@ import { Notify } from 'quasar';
 
         // getAllExecutionTypes
       },
-      
+
       async getAllLanguage(){
         let vm = this;
 
@@ -514,7 +609,6 @@ import { Notify } from 'quasar';
         vm.language_options = data.rows;
         // getAllExecutionTypes
       },
-
     }
   }
 </script>
