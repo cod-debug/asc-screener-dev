@@ -18,7 +18,7 @@
 
         <div>
           <hr class="nav-hr" />
-          <q-item clickable v-ripple class="nav-item" @click="logout">
+          <q-item clickable v-ripple class="nav-item" @click="confirm_logout">
             <q-item-section avatar>
               <i class="fa-solid fa-power-off"></i>
             </q-item-section>
@@ -50,6 +50,7 @@
 <script>
   import { ref } from 'vue';
   import EvaluatorDrawer from "../Evaluator/DrawerItems";
+  import Swal from "sweetalert2";
 
   const miniState = ref(false)
 
@@ -106,6 +107,24 @@
         let currentdate = new Date();
 
       },
+      confirm_logout() {
+        Swal.fire({
+          title: 'Logging Out',
+          text: 'Are you sure you want to Logout?',
+          icon: 'question',
+          showCancelButton: true,
+          confirmButtonColor: '#3085d6',
+          cancelButtonColor: '#d33',
+          confirmButtonText: 'Logout',
+        }).then((result) => {
+          if (result.isConfirmed) {
+            // this.$q.sessionStorage.clear();
+            // this.$q.localStorage.clear();
+            this.logout();
+          }
+        });
+      },
+
       logout(){
         localStorage.clear();
         window.location.href = process.env.ADMIN_BASE_URL;
