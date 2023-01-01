@@ -14,7 +14,15 @@
       <q-card-section>
         <div class="row q-my-lg">
           <div class="col-md-9 col-sm-12">
-            <q-input outlined label="Search Applications" class="q-mt-md"  v-model="search" @blur="getList()" />
+            <form @submit.prevent="getList(true)" method="POST" >
+              <q-input bottom-slots  v-model="search" outlined label="Search Applications" hint="Hit ''Enter'' key or click search icon to search application.">
+                <template v-slot:append>
+                  <!-- <q-icon v-if="search !== ''" name="close" @click="search = '' && getList(true)" class="cursor-pointer" /> -->
+                  <q-icon name="search" @click="getList(true)" />
+                </template>
+              </q-input>
+              <!-- <q-input outlined label="Search Applications" class="q-mt-md"  v-model="search" @blur="getList(true)" /> -->
+            </form>
           </div>
           <div class="col-md-3 q-px-md col-sm-12">
             <div class="shadow-2 q-pa-sm">
@@ -44,6 +52,8 @@
 
         <hr class="q-tabs-gutter" color="lightgray" />
 
+      
+
         <div class="table_container q-mt-md" v-if="!is_loading">
           <div v-if="table_data.length <= 0" class="no-data-found">
             <q-icon name="warning" /> NO DATA FOUND...
@@ -60,7 +70,7 @@
             <template #body="props">
               <q-tr
                 :props="props"
-                :class="(hasOwner(props.row)) ? (isOwned(props.row)) ? 'bg-yellow' : 'bg-hrey-4': 'bg-white'"
+                :class="(hasOwner(props.row)) ? (isOwned(props.row)) ? 'bg-yellow' : 'bg-grey-4': 'bg-white'"
                 hover
                 style="cursor: pointer"
                 @click="update(props.row)"
@@ -68,6 +78,7 @@
                 <q-td
                   key="referrence_code"
                   :props="props"
+                  :class="`bg-${current_id_bg}`"
                 >
                   {{ props.row.referrence_code || '--' }}
                 </q-td>
@@ -95,7 +106,13 @@
                   key="type_medium_name"
                   :props="props"
                 >
-                  {{props.row.type_medium_name.length > 0 ? props.row.type_medium_name.join(", ") : '' }}
+                  {{ Array.isArray(props.row.type_medium_name) ? props.row.type_medium_name.join(", ") : props.row.type_medium_name }}
+                </q-td>
+                <q-td
+                  key="status"
+                  :props="props"
+                >
+                  {{ props.row.status }}
                 </q-td>
                 <q-td
                   key="internal_status"
@@ -191,24 +208,22 @@ import { Notify } from "quasar";
           code: 'SCREENED APPLICATIONS',
           count: 0
         },
-        /*{
-          name: "RELEASED APPEAL",
-          code: 'RELE',
-          count: 3
-        }*/
       ],
 
       legends: [
         {
           color: "blue",
+          theme_color: "blue-2",
           title: "ORIGINAL",
         },
         {
           color: "gold",
-          title: "FOR COMPLIANCE",
+          theme_color: "yellow-6",
+          title: "COMPLIANCE",
         },
         {
           color: "green",
+          theme_color: "green-4",
           title: "REVISION",
         }
       ],
@@ -236,7 +251,15 @@ import { Notify } from "quasar";
     computed:{
       userID(){
         return localStorage.getItem('ui');
-      }
+      },
+      current_id_bg(){
+        console.log( this.legends.filter((i) => {
+          return i.title == this.active_tab;
+        })[0].color, "COMPUTED");
+        return this.legends.filter((i) => {
+          return i.title == this.active_tab;
+        })[0].theme_color;
+      },
     },
     mounted(){
       this.initApp();
@@ -268,6 +291,7 @@ import { Notify } from "quasar";
 
       setActiveTab(tab) {
         this.active_tab = tab;
+        this.current = 1;
       },
 
       refresh() {
@@ -314,16 +338,20 @@ import { Notify } from "quasar";
       },
       
 
-      async getList(){
+      async getList(is_search){
         let vm = this;
+        if(is_search){
+          vm.current = 1;
+        }
         vm.is_loading = true;
         
         let payload = {
           data: {
-            "form_group": "INDIVIDUAL",
             "application_type": ["REGULAR", "BATCH"],
+            "form_group": "INDIVIDUAL",
             "search": vm.search,
-            "processType": vm.active_tab
+            "form_type": "s1",
+            "process_type": vm.active_tab
           },
           params: {
             take: vm.take,
@@ -335,7 +363,7 @@ import { Notify } from "quasar";
           vm.table_data = data.data.map((item) => {
             return {...item, 
               company_name: item.company.name, 
-              type_medium_name: item.type_of_medium.length > 0 ? item.type_of_medium.map((i) => i.type_of_medium ): '',
+              type_medium_name: item.type_of_medium.length > 0 ? item.type_of_medium.map((i) => i.type_of_medium ): '--',
               is_self_assigned: true, // TO BE UPDATED ONCE DONE IN SIR KEVIN'S ENDPOINT
             }
           }) || [];
@@ -350,10 +378,11 @@ import { Notify } from "quasar";
         let vm = this;
         let payload = {
           data: {
-            "form_group": "INDIVIDUAL",
             "application_type": ["REGULAR", "BATCH"],
+            "form_group": "INDIVIDUAL",
             "search": vm.search,
-            "processType": processType
+            "form_type": "s1",
+            "process_type": processType
           },
           params: {
             take: vm.take,
@@ -362,7 +391,7 @@ import { Notify } from "quasar";
         }
         let {data, status} = await vm.$store.dispatch("s1/getS1Applications", payload);
 
-        return data.data.length;
+        return data.count;
       },
 
       async confirmLock(){
@@ -372,7 +401,7 @@ import { Notify } from "quasar";
           id: vm.selected_item.id
         }
         
-        let {data, status} = await this.$store.dispatch("ascUser/lockApp", payload);
+        let {data, status} = await this.$store.dispatch("asc_user/lockApp", payload);
 
         if([200, 201].includes(status)){
           Notify.create({

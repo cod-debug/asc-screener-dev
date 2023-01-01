@@ -2,7 +2,7 @@
   <div class="q-pa-md q-mt-lg q-ml-lg">
     <q-card bordered class="my-card" elevated>
       <q-card-section class="row">
-        <div class="text-h6 page-title text-dark col-md-6"><q-icon name="list" />  S1 APPLICATION -  MULTIPLE</div>
+        <div class="text-h6 page-title text-dark col-md-6"><q-icon name="list" />  S1 APPLICATION -  INDIVIDUAL</div>
         <div class="text-right col-md-6">
           <!-- <q-btn label="NEW APPLICATION" elevated class="q-mr-sm position-right" size="md" icon="add" color="red-14" /> -->
           <q-btn :label="localTimer == 0 ? '' : localTimer + ' sec'" elevated size="md" icon="sync" @click="refresh" :disabled="localTimer > 0" color="primary" />
@@ -14,15 +14,7 @@
       <q-card-section>
         <div class="row q-my-lg">
           <div class="col-md-9 col-sm-12">
-            <form @submit.prevent="getList(true)" method="POST" >
-              <q-input bottom-slots  v-model="search" outlined label="Search Applications" hint="Hit ''Enter'' key or click search icon to search application.">
-                <template v-slot:append>
-                  <!-- <q-icon v-if="search !== ''" name="close" @click="search = '' && getList(true)" class="cursor-pointer" /> -->
-                  <q-icon name="search" @click="getList(true)" />
-                </template>
-              </q-input>
-              <!-- <q-input outlined label="Search Applications" class="q-mt-md"  v-model="search" @blur="getList(true)" /> -->
-            </form>
+            <q-input outlined label="Search Applications" class="q-mt-md"  v-model="search" @blur="getList()" />
           </div>
           <div class="col-md-3 q-px-md col-sm-12">
             <div class="shadow-2 q-pa-sm">
@@ -51,8 +43,6 @@
         </q-tabs>
 
         <hr class="q-tabs-gutter" color="lightgray" />
-
-      
 
         <div class="table_container q-mt-md" v-if="!is_loading">
           <div v-if="table_data.length <= 0" class="no-data-found">
@@ -93,7 +83,7 @@
                   key="company_name"
                   :props="props"
                 >
-                  {{ props.row.company.name || '' }}
+                  {{ props.row.company_name }}
                 </q-td>
                 <q-td
                   key="brand"
@@ -105,13 +95,7 @@
                   key="type_medium_name"
                   :props="props"
                 >
-                  {{ Array.isArray(props.row.type_medium_name) ? props.row.type_medium_name.join(", ") : props.row.type_medium_name }}
-                </q-td>
-                <q-td
-                  key="status"
-                  :props="props"
-                >
-                  {{ props.row.status }}
+                  {{props.row.type_medium_name.length > 0 ? props.row.type_medium_name.join(", ") : '' }}
                 </q-td>
                 <q-td
                   key="internal_status"
@@ -190,6 +174,21 @@ import { Notify } from "quasar";
         {
           name: "COMPLIANCE",
           code: 'COMPLIANCE',
+          count: 0
+        },
+        {
+          name: "RETURNED APPLICATION",
+          code: 'RETURNED APPLICATION',
+          count: 0
+        },
+        {
+          name: "FOR DECICION AND COMMENTS",
+          code: 'FOR DECICION AND COMMENTS',
+          count: 0
+        },
+        {
+          name: "SCREENED APPLICATIONS",
+          code: 'SCREENED APPLICATIONS',
           count: 0
         },
         /*{
@@ -313,21 +312,18 @@ import { Notify } from "quasar";
           this.lockModal = true;
         }
       },
+      
 
-      async getList(is_search){
+      async getList(){
         let vm = this;
-        if(is_search){
-          vm.current = 1;
-        }
-        
         vm.is_loading = true;
+        
         let payload = {
           data: {
-            "application_type": ["REGULAR"],
-            "form_group": "MULTIPLE",
+            "form_group": "INDIVIDUAL",
+            "application_type": ["REGULAR", "BATCH"],
             "search": vm.search,
-            "form_type": "s1",
-            "process_type": vm.active_tab
+            "processType": vm.active_tab
           },
           params: {
             take: vm.take,
@@ -338,8 +334,8 @@ import { Notify } from "quasar";
         if([200, 201].includes(status)){
           vm.table_data = data.data.map((item) => {
             return {...item, 
-              company_name: item?.company?.name || "", 
-              type_medium_name: item.type_of_medium.length > 0 ? item.type_of_medium.map((i) => i.type_of_medium ): [],
+              company_name: item.company.name, 
+              type_medium_name: item.type_of_medium.length > 0 ? item.type_of_medium.map((i) => i.type_of_medium ): '',
               is_self_assigned: true, // TO BE UPDATED ONCE DONE IN SIR KEVIN'S ENDPOINT
             }
           }) || [];
@@ -354,11 +350,10 @@ import { Notify } from "quasar";
         let vm = this;
         let payload = {
           data: {
-            "application_type": ["REGULAR"],
-            "form_group": "MULTIPLE",
+            "form_group": "INDIVIDUAL",
+            "application_type": ["REGULAR", "BATCH"],
             "search": vm.search,
-            "form_type": "s1",
-            "process_type": processType
+            "processType": processType
           },
           params: {
             take: vm.take,
@@ -367,7 +362,7 @@ import { Notify } from "quasar";
         }
         let {data, status} = await vm.$store.dispatch("s1/getS1Applications", payload);
 
-        return data.count;
+        return data.data.length;
       },
 
       async confirmLock(){
@@ -377,7 +372,7 @@ import { Notify } from "quasar";
           id: vm.selected_item.id
         }
         
-        let {data, status} = await this.$store.dispatch("asc_user/lockApp", payload);
+        let {data, status} = await this.$store.dispatch("ascUser/lockApp", payload);
 
         if([200, 201].includes(status)){
           Notify.create({
