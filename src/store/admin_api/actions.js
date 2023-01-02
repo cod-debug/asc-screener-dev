@@ -101,6 +101,22 @@ export const getSpecificAffiliation = async ({ commit }, payload) => {
   return res
 }
 
+export const getAllReasons = async ({ commit }, payload) => {
+  let res = {};
+  try {
+      res = await axios({
+      method: "get",
+      url: `${getEnv('ADMIN_API_BASE_URL')}/reason-type/getall/`,
+      params: payload,
+      headers: headers,
+      })
+  } catch (e) {
+      res.data = e.response.data
+      res.status = e.response.status
+  }
+  return res;
+}
+
 export const getAllAnnouncements = async ({ commit }, payload) => {
   let res = await axios({
     url: `${getEnv('ADMIN_API_BASE_URL')}/announce/getall`,
@@ -108,5 +124,21 @@ export const getAllAnnouncements = async ({ commit }, payload) => {
     method: "get",
     headers: headers,
   })
+  return res;
+}
+
+export const getOne = async ({ commit }, payload) => {
+  let res = null;
+  try {
+    res = await axios({
+      url: `${getEnv("ADMIN_API_BASE_URL")}/users/getone`,
+      params: payload,
+      method: "get",
+      headers: headers,
+    })
+  } catch (e) {
+    res.data = e
+    res.status = 400
+  }
   return res;
 }

@@ -63,8 +63,20 @@ const routes = [
         path: "announcement",
         component: () => import("pages/Announcements/AnnouncementView.vue"),
       },
+    ],
+  },
+  {
+    path: "/account",
+    name: "account",
+    component: () => import("layouts/ApplicantLayout.vue"),
+    children: [
+      {
+        path: "user-profile",
+        name: "user-profile",
+        component: () => import('pages/Profile/Account/UserProfile/UserProfileIndex.vue'),
+      },
     ]
-  }
+  },
 ];
 
 export default routes;
