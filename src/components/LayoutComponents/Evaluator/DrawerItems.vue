@@ -74,6 +74,18 @@ export default {
               label: "Special Applications",
               count: data.specialCount || 0,
               path: "/asc/page/application/s1/special",
+            },
+            {
+              icon: "fa-solid fa-caret-right",
+              label: "For Release",
+              count: data.forReleaseCount || 0,
+              path: "/asc/page/application/s1/for-release",
+            },
+            {
+              icon: "fa-solid fa-caret-right",
+              label: "Released",
+              count: data.releasedCount || 0,
+              path: "/asc/page/application/s1/released",
             }
           ]
         },

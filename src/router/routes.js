@@ -49,6 +49,22 @@ const routes = [
         component: () => import("pages/S1Applications/SpecialApp.vue"),
       },
       {
+        name: "for-release-list",
+        path: "application/s1/for-release",
+        meta: {
+          requiresAuth: true,
+        },
+        component: () => import("pages/S1Applications/ForReleaseApp.vue"),
+      },
+      {
+        name: "released-list",
+        path: "application/s1/released",
+        meta: {
+          requiresAuth: true,
+        },
+        component: () => import("pages/S1Applications/ReleasedIndex.vue"),
+      },
+      {
         name: "dashboard",
         path: "",
         component: () => import("pages/Evaluator/EvaluatorIndex.vue"),

@@ -113,3 +113,19 @@ export const getCountByRole = async ({ commit }, payload) => {
   }
   return res;
 }
+
+export const getPerReleaseStatus = async ({ commit }, payload) => {
+  let res = {};
+  try {
+      res = await axios({
+      method: "POST",
+      url: `${getEnv('API_BASE_URL')}${prefix}/asc-user/view-application/per-release-status/`,
+      data: payload.data,
+      headers: headers,
+      })
+  } catch (e) {
+      res.data = e?.response?.data || null
+      res.status = e?.response?.status || null
+  }
+  return res;
+}

@@ -316,7 +316,7 @@
       },
 
       backToList() {
-        this.$router.push({ name: "individual-application-list" });
+        this.$router.go(-1);
       },
 
       async getSpecific(){
@@ -343,7 +343,8 @@
         vm.external_comment_input = `${vm.external_comment != null ? vm.external_comment : ''}` || "";
         vm.type_of_medium_parsed = vm.type_of_medium.map((i) => {
           return i.type_of_medium
-        })
+        });
+
         vm.type_of_medium_new = data.type_of_medium;
         vm.affiliate_id = data.company.affiliateID;
         vm.$nextTick(() => {
